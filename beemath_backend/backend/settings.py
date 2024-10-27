@@ -102,7 +102,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+        'rest_framework.permissions.AllowAny',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES':(
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -111,8 +111,8 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
    'AUTH_HEADER_TYPES': ('JWT',),
-   'ACCESS_TOKEN_LIFETIME':timedelta(days=7),
-   'REFRESH_TOKEN_LIFETIME':timedelta(days=7),
+   'ACCESS_TOKEN_LIFETIME':timedelta(days=1),
+   'REFRESH_TOKEN_LIFETIME':timedelta(days=1),
    'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': False,
     'UPDATE_LAST_LOGIN': False,
@@ -164,7 +164,7 @@ MEDIA_ROOT = '/media/'
 CSRF_TRUSTED_ORIGINS = ['http://localhost:8083']
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:80']
+    'http://localhost:80','localhost:8082']
 
 
 

@@ -11,85 +11,18 @@ import {
 } from "reactstrap";
 import { useNavigate } from "react-router-dom";
 import { connect } from "react-redux";
-import styled from "styled-components";
 import VideoPlayer from "react-simple-video-player";
 import Counter from "./Counter";
 import { BASE_URL } from "./Url";
 import { Variant } from "./Variant";
 import { getVariants, productTotal } from "./utility/Utility";
 import { addMultiToCart } from "../actions/auth";
-
-const Circle = styled.div`
-  display: flex;
-  height: 220px;
-  position: relative;
-  flex-wrap: wrap;
-`;
-const ProductImg = styled.img`
-  height: 200px;
-  width: 150px;
-  borderradius: 6px;
-  margin: 0;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  -ms-transform: translate(-50%, -50%);
-  transform: translate(-50%, -50%);
-`;
-
-const Price = styled.div`
-  font-family: "Urbanist", sans-serif;
-  color: black;
-  font-weight: bold;
-  font-size: 14px;
-  margin-left: 2px;
-`;
-const Qty = styled.div`
-  font-family: "Urbanist", sans-serif;
-  color: black;
-  font-weight: bold;
-  font-size: 12px;
-  margin-left: auto;
-`;
-
-const ProductContainer = styled.div`
-  margin: 0px;
-  justify-content: center;
-  text-align: left;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-  font-size: 20px;
-  height: 270px;
-  cursor: pointer;
-
-  &:hover {
-    transform: scale(1.1);
-    transition: all 0.5s ease;
-  }
-  @media screen and (max-width: 768px) {
-    height: 150px;
-    margin: 1px;
-    font-size: 10px;
-
-    ${Circle} {
-      height: 110px;
-    }
-    ${ProductImg} {
-      height: 90px;
-      width: 80px;
-    }
-    ${Price} {
-      font-size: 10px;
-    }
-    ${Qty} {
-      font-size: 8px;
-    }
-  }
-`;
-const Details = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-`;
+import {
+  ProductContainer,
+  Details,
+  Circle,
+  ProductImg,
+} from "./ProductDetailsModal";
 
 const ProductHome = (props) => {
   const navigate = useNavigate();
@@ -179,22 +112,22 @@ const ProductHome = (props) => {
 
   if (create) {
     const button = (
-      <div className="container-fluid">
+      <div>
         <ProductContainer onClick={toggle}>
           <Circle>
             <ProductImg src={`${BASE_URL}${product.image}`} alt="product" />
           </Circle>
-          <div className="row product-text-hm">
-            <div className="col-12 pull-left ">
-              <CardText>
-                {props.descriptionDisplay(product.description)}
-              </CardText>
-            </div>
+
+          <div className="desc">
+            <p>{product.category}</p>
+            <div>{props.descriptionDisplay(product.description)}</div>
+            <Details>
+              <div style={{ color: "green", fontSize: 15 }}>
+                ₦{product.price.toLocaleString()}
+              </div>
+              <div>{productQuantity} left</div>
+            </Details>
           </div>
-          <Details>
-            <Price>₦ {product.price}</Price>
-            <Qty>{productQuantity} left</Qty>
-          </Details>
         </ProductContainer>
       </div>
     );

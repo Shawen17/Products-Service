@@ -1,7 +1,9 @@
 from django.shortcuts import render
+import json
 from django.contrib.auth import get_user_model
 from django.db.models import Sum
-from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
@@ -32,6 +34,7 @@ def product_api(request):
 
 
 @api_view(['PUT','GET'])
+@permission_classes([IsAuthenticated])
 def remove_from_cart(request):
     data=request.data
     if request.method == "PUT":
@@ -50,6 +53,7 @@ def remove_from_cart(request):
 
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def get_destination(request):
     data=request.data
     unordered_cart_items=ShoppingCart.objects.filter(shopper=data['email'],status='in-cart')
@@ -121,6 +125,7 @@ def update_multi_cart_items(request):
 
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def display_cart_items(request):
     data=request.data
     if request.method == "PUT":
@@ -135,6 +140,7 @@ def display_cart_items(request):
 
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def initiate_payment(request):
     from .utility import remove
     data=request.data
@@ -164,23 +170,36 @@ def initiate_payment(request):
 def client_orders(request):
     from .utility import remove
     if request.method == 'PUT':
-        data=request.data
-        orders=Order.objects.filter(ordered_by=data['email']).order_by('-ordered_on')
-        categories=[]
-        for order in orders:
-            items=order.item.split(',')
-            products=remove(items)
-            for prod,var in products:
-                if var=='':
-                    var=None
-                category=ProductVariation.objects.get(product__description=prod,variant=var).product.category
-                if category not in categories:
-                    categories.append(category)
-        products=ProductVariation.objects.filter(product__category__in=categories)
-        product_serializer=ProductVariationSerializer(products,many=True)
-        serializer=OrderSerializer(orders,many=True)
+        try:
+            data = json.loads(request.body)
+            items = data.get('products', [])
+            if not items:
+                return Response({"error": "No products provided"}, status=status.HTTP_400_BAD_REQUEST)
+            # Process items
+            categories = []
+            prod_desc = []
+            products = remove(items)
+            for prod, var in products:
+                if var == '':
+                    var = None
+                try:
+                    category = ProductVariation.objects.get(product__description=prod, variant=var)
+                    if category.product.description not in prod_desc:
+                        prod_desc.append(category.product.description)
+                        categories.append(category.product.category)
+                except ProductVariation.DoesNotExist:
+                    continue 
 
-        return Response({"orders":serializer.data,"products":product_serializer.data})
+            # Fetch products by categories
+            products = ProductVariation.objects.filter(product__category__in=categories ).exclude(product__description__in=prod_desc)
+            product_serializer = ProductVariationSerializer(products, many=True)
+            return Response({"products": product_serializer.data}, status=status.HTTP_200_OK)
+
+        except json.JSONDecodeError:
+            return Response({"error": "Invalid JSON format"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
     return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 

@@ -49,13 +49,17 @@ const TopCon = styled.div`
   border-radius: 6px;
   border: 1px;
   display: flex;
+  align-items: center;
+  justify-content: space-evenly;
   flex-wrap: wrap;
   margin-top: 4px;
 `;
 
 const TopImg = styled.div`
   display: flex;
-  flex: 15%;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
 
   @media screen and (max-width: 768px) {
     flex: 30%;

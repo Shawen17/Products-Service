@@ -2,9 +2,9 @@ import re
 
 
 def remove(item):
-    pattern = '[0-9]'
-    a = [re.sub(pattern, '', i) for i in item]
-    b=[i.strip() for i in a]
+    # pattern = '[0-9]'
+    # a = [re.sub(pattern, '', i) for i in item]
+    b=[i.strip() for i in item]
     c=[i.split('_') for i in b]
     desc=[]
     variant=[]

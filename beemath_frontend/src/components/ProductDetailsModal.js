@@ -29,7 +29,7 @@ export const Circle = styled.div`
   justify-content: center;
 `;
 
-const ProductImg = styled.img`
+export const ProductImg = styled.img`
   padding: 8px;
   width: 80%;
   height: 80%;
@@ -53,24 +53,24 @@ export const ProductContainer = styled.div`
     transition: 1s ease-in-out;
   }
 `;
-const Details = styled.div`
+export const Details = styled.div`
   padding: 3px;
   display: flex;
   justify-content: space-between;
   margin-top: 10px;
 `;
 
-const ProductDetails = styled.p`
+export const ProductDetails = styled.p`
   color: #18a558;
 `;
 
-const Circ = styled.div`
+export const Circ = styled.div`
   position: absolute;
   border-radius: 50%;
   border: 0.5px solid grey;
 `;
 
-const SmallCircle = styled(Circ)`
+export const SmallCircle = styled(Circ)`
   width: 20px;
   height: 20px;
   z-index: 99;
@@ -120,13 +120,10 @@ const ProductDetailsModal = (props) => {
   };
 
   const HandleClick = (event) => {
-    // Directly call handleGrow here instead of adding event listener
     handleGrow(event);
-
-    // You can also control modal toggle behavior here
-    setTimeout(() => setModal(!modal), 1200);
+  setTimeout(() => setModal(!modal), 1200);
   };
-  console.log(testPosition);
+  
 
   const create = props.create;
   const product = props.product;

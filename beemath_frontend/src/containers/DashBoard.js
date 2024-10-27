@@ -1,38 +1,36 @@
 import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
-// import { Table } from "reactstrap";
-// import { Row, Col } from "reactstrap";
+import { Row, Col } from "reactstrap";
 import styled from "styled-components";
 import { connect } from "react-redux";
-// import ProductDetailsModal from "../components/ProductDetailsModal";
+import ProductDetailsModal from "../components/ProductDetailsModal";
 import Pagination from "../components/Pagination";
-// import { descriptionDisplay } from "./Products";
+import { descriptionDisplay } from "./Products";
 import { logout, addToCart } from "../actions/auth";
 import OrderItems from "../components/Order/OrderItems";
-
-// import { unique } from "../components/utility/Utility";
+import { unique } from "../components/utility/Utility";
 require("dotenv").config();
 
-// const Items = styled.div`
-//   width: 100%;
-//   margin-top: 20px;
-// `;
+const Items = styled.div`
+  width: 100%;
+  margin-top: 20px;
+`;
 
-// const SubTitle = styled.div`
-//   display: flex;
-//   align-items: flex-start;
-//   justify-content: flex-start;
-//   font-size: 15px;
-//   font-weight: bold;
-// `;
+const SubTitle = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  font-size: 15px;
+  font-weight: bold;
+`;
 
-// const Desc = styled.div`
-//   display: flex;
-//   margin-left: auto;
-//   color: #18a558;
-//   font-size: 15px;
-// `;
+const Desc = styled.div`
+  display: flex;
+  margin-left: auto;
+  color: #18a558;
+  font-size: 15px;
+`;
 
 const TH = styled.th`
   font-size: 17px;
@@ -72,46 +70,56 @@ const DashBoard = (props) => {
   document.title = "orders";
   const [currentPage, setCurrentPage] = useState(1);
   const [orders, setOrders] = useState([]);
+  const [products, setProducts] = useState([]);
   const token = localStorage.getItem("access");
   const email = localStorage.getItem("email");
+  const [count, setCount] = useState(0);
   const navigate = useNavigate();
 
   //use useMemo inplace of useEffect
   useEffect(() => {
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `JWT ${token}`,
-        Accept: "application/json",
-      },
-    };
+    const fetchData = async () => {
+      const order_api = `http://localhost:8082/api/orders/user?email=${email}`;
+      const product_api = "http://localhost:8083/api/orders/";
 
-    axios
-      .get(`http://localhost:8082/api/orders/user?email=${email}`, config)
-      .then((res) => {
-        setOrders(res.data.data);
-      })
-      .catch((err) => {
-        if (err.response) {
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `JWT ${token}`,
+          Accept: "application/json",
+        },
+      };
+      try {
+        const response1 = await axios.get(order_api, config);
+        setOrders(response1.data.data.orders);
+        const product_data = response1.data.data.products;
+        const body = { products: product_data };
+        const response2 = await axios.put(product_api, body, config);
+        setProducts(response2.data.products);
+      } catch (err) {
+        if (err.response?.status === 401) {
           props.logout();
           navigate("/login");
+        } else {
+          console.error("An error occurred:", err.message);
         }
-      });
-  }, [email, navigate, props, token]);
+      }
+    };
+    fetchData();
+  }, [email, token, props, navigate]);
 
-  // const recentOrders = [...orders.items.products];
-  // const uniqueRecentOrders = unique(recentOrders);
+  const recentOrders = [...products];
+  const uniqueRecentOrders = unique(recentOrders);
 
-  // const increment = (num) => {
-  //   setCount(num + 1);
-  // };
+  const increment = (num) => {
+    setCount(num + 1);
+  };
 
-  // const decrement = (num) => {
-  //   if (num > 0) {
-  //     setCount(num - 1);
-  //   }
-  // };
-  console.log("orders", orders);
+  const decrement = (num) => {
+    if (num > 0) {
+      setCount(num - 1);
+    }
+  };
 
   const currentData = useMemo(() => {
     const allOrders = orders;
@@ -122,18 +130,18 @@ const DashBoard = (props) => {
 
   const orderPresent = orders.length > 0;
 
-  // const HandleButtonClick = async (product, toggle) => {
-  //   if (token != null) {
-  //     if (count > 0) {
-  //       props.addToCart(email, product, count);
-  //       alert(`${count} ${product.description} added to cart`);
-  //       setCount(0);
-  //       toggle();
-  //     }
-  //   } else {
-  //     navigate("/login");
-  //   }
-  // };
+  const HandleButtonClick = async (product, toggle) => {
+    if (token != null) {
+      if (count > 0) {
+        props.addToCart(email, product, count);
+        alert(`${count} ${product.description} added to cart`);
+        setCount(0);
+        toggle();
+      }
+    } else {
+      navigate("/login");
+    }
+  };
 
   const noPreviousOrders = () => (
     <div
@@ -179,6 +187,42 @@ const DashBoard = (props) => {
           START SHOPPING
         </Link>
       </button>
+      <Items>
+        <SubTitle>
+          <h6>Similar items you might like</h6>
+          <Desc>
+            <Link className="nav-link" to="/products">
+              SEE ALL
+            </Link>
+          </Desc>
+        </SubTitle>
+        <Row>
+          {!products || products.length <= 0 ? (
+            <div width="50%" height="80%" className="text-center">
+              <h4>start making orders</h4>
+            </div>
+          ) : (
+            uniqueRecentOrders.slice(0, 6).map((product) => (
+              <Col xs="6" sm="4" md="3" lg="2" key={product.id}>
+                <div className="cardStyle">
+                  <ProductDetailsModal
+                    key={product.id}
+                    create={true}
+                    product={product}
+                    allProducts={recentOrders}
+                    resetState={props.resetState}
+                    descriptionDisplay={descriptionDisplay}
+                    HandleButtonClick={HandleButtonClick}
+                    count={count}
+                    decrement={decrement}
+                    increment={increment}
+                  />
+                </div>
+              </Col>
+            ))
+          )}
+        </Row>
+      </Items>
     </div>
   );
 
